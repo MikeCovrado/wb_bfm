@@ -20,13 +20,12 @@
 module wb_bfm_tb;
 
    vlog_tb_utils vlog_tb_utils0();
-   vlog_tap_generator #("wb_bfm.tap", 1) vtg();
 
    localparam aw = 32;
    localparam dw = 32;
 
-   reg	   wb_clk = 1'b1;
-   reg	   wb_rst = 1'b1;
+   reg  wb_clk = 1'b1;
+   reg  wb_rst = 1'b1;
 
    always #5 wb_clk <= ~wb_clk;
    initial  #100 wb_rst <= 0;
@@ -35,16 +34,16 @@ module wb_bfm_tb;
 
    wire [aw-1:0] wb_m2s_adr;
    wire [dw-1:0] wb_m2s_dat;
-   wire [3:0] 	 wb_m2s_sel;
-   wire 	 wb_m2s_we ;
-   wire 	 wb_m2s_cyc;
-   wire 	 wb_m2s_stb;
-   wire [2:0] 	 wb_m2s_cti;
-   wire [1:0] 	 wb_m2s_bte;
+   wire [3:0]    wb_m2s_sel;
+   wire          wb_m2s_we ;
+   wire          wb_m2s_cyc;
+   wire          wb_m2s_stb;
+   wire [2:0]    wb_m2s_cti;
+   wire [1:0]    wb_m2s_bte;
    wire [dw-1:0] wb_s2m_dat;
-   wire 	 wb_s2m_ack;
-   wire 	 wb_s2m_err;
-   wire 	 wb_s2m_rty;
+   wire          wb_s2m_ack;
+   wire          wb_s2m_err;
+   wire          wb_s2m_rty;
 
    wb_bfm_transactor
      #(.MEM_HIGH (32'h00007fff),
@@ -84,18 +83,27 @@ module wb_bfm_tb;
       .wb_err_o (wb_s2m_err),
       .wb_rty_o (wb_s2m_rty));
 
-   integer 	 TRANSACTIONS;
-   integer 	 SUBTRANSACTIONS;
-   integer 	 SEED;
+   integer  TRANSACTIONS;
+   integer  SUBTRANSACTIONS;
+   integer  SEED;
+   string   VCD = "wb_bfm_tb.vcd";
 
    initial begin
       //Grab CLI parameters
-      if($value$plusargs("transactions=%d", TRANSACTIONS))
-	master.set_transactions(TRANSACTIONS);
-      if($value$plusargs("subtransactions=%d", SUBTRANSACTIONS))
-	master.set_subtransactions(SUBTRANSACTIONS);
-      if($value$plusargs("seed=%d", SEED))
-	master.SEED = SEED;
+      if($value$plusargs("transactions=%d", TRANSACTIONS)) begin
+        master.set_transactions(TRANSACTIONS);
+      end
+      if($value$plusargs("subtransactions=%d", SUBTRANSACTIONS)) begin
+        master.set_subtransactions(SUBTRANSACTIONS);
+      end
+      if($value$plusargs("seed=%d", SEED)) begin
+        master.SEED = SEED;
+        VCD = $sformatf("wb_bfm_tb_%0d.vcd", SEED);
+      end
+
+      //Wavedumping
+      $dumpfile(VCD);
+      $dumpvars(0, wb_bfm_tb);
 
       master.display_settings;
       master.run;
@@ -103,7 +111,6 @@ module wb_bfm_tb;
    end
 
    always @(posedge done) begin
-      vtg.ok("All tests complete");
       $display("All tests complete");
       $finish;
    end
